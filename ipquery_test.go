@@ -26,7 +26,7 @@ func BenchmarkLoad(b *testing.B) {
 	s := new(QueryServer)
 
 	for i := 0; i < b.N; i++ {
-		err := s.Load("/home/daniel/17monipdb.dat")
+		err := s.Load("./data/17monipdb.dat")
 		if nil != err {
 			b.Errorf("Load Error:%s", err.Error())
 		}
@@ -35,7 +35,7 @@ func BenchmarkLoad(b *testing.B) {
 
 func BenchmarkFindIp(b *testing.B) {
 	s := new(QueryServer)
-	err := s.Load("/home/daniel/17monipdb.dat")
+	err := s.Load("./data/17monipdb.dat")
 	if nil != err {
 		b.Errorf("Load Error:%s", err.Error())
 	}
@@ -52,7 +52,7 @@ func BenchmarkFindIp(b *testing.B) {
 
 func BenchmarkFindIpRandom(b *testing.B) {
 	s := new(QueryServer)
-	err := s.Load("/home/daniel/17monipdb.dat")
+	err := s.Load("./data/17monipdb.dat")
 	if nil != err {
 		b.Errorf("Load Error:%s", err.Error())
 	}
