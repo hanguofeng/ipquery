@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 )
 
-func TestLoad(t *testing.T) {
+func TestFindIp(t *testing.T) {
 	s := new(QueryServer)
 	err := s.Load("./data/17monipdb.dat")
 
@@ -16,6 +17,13 @@ func TestLoad(t *testing.T) {
 
 	ipstr := getRandomIpStr()
 	address, ok := s.FindIp(ipstr)
+	if !ok {
+		t.Errorf("FindIp Failed")
+	}
+	t.Logf("ipstr:%s,address:%s", ipstr, address)
+
+	ipstr = "127.0.0.1"
+	address, ok = s.FindIp(ipstr)
 	if !ok {
 		t.Errorf("FindIp Failed")
 	}
@@ -72,5 +80,6 @@ func getRandomIpStr() string {
 }
 
 func rnd(from, to int) int {
+	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(to+1-from) + from
 }
