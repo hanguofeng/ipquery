@@ -7,34 +7,51 @@ import (
 	"time"
 )
 
-func TestParseData(t *testing.T) {
+const DATA_FILE = "./data/17monipdb.dat"
+
+func TestLoad(t *testing.T) {
 	s := new(QueryServer)
-	err := s.Load("./data/17monipdb.dat")
+	var err error
+	err = s.Load(DATA_FILE)
 
 	if nil != err {
 		t.Errorf("Load Error:%s", err.Error())
 	}
 
-	s.ParseData()
+	err = s.Load("NOT_EXIST_FILE")
 
+	if nil == err {
+		t.Errorf("Load Error should be error because of not exist file")
+	}
 }
 
 func TestFindIp(t *testing.T) {
 	s := new(QueryServer)
-	err := s.Load("./data/17monipdb.dat")
+	err := s.Load(DATA_FILE)
 
 	if nil != err {
 		t.Errorf("Load Error:%s", err.Error())
 	}
 
-	ipstr := getRandomIpStr()
-	address, ok := s.FindIp(ipstr)
+	var ipstr string
+	var address string
+	var ok bool
+
+	ipstr = getRandomIpStr()
+	address, ok = s.FindIp(ipstr)
 	if !ok {
 		t.Errorf("FindIp Failed")
 	}
 	t.Logf("ipstr:%s,address:%s", ipstr, address)
 
 	ipstr = "127.0.0.1"
+	address, ok = s.FindIp(ipstr)
+	if !ok {
+		t.Errorf("FindIp Failed")
+	}
+	t.Logf("ipstr:%s,address:%s", ipstr, address)
+
+	ipstr = "0.0.0.1"
 	address, ok = s.FindIp(ipstr)
 	if !ok {
 		t.Errorf("FindIp Failed")
@@ -54,7 +71,7 @@ func BenchmarkLoad(b *testing.B) {
 	s := new(QueryServer)
 
 	for i := 0; i < b.N; i++ {
-		err := s.Load("./data/17monipdb.dat")
+		err := s.Load(DATA_FILE)
 		if nil != err {
 			b.Errorf("Load Error:%s", err.Error())
 		}
@@ -63,46 +80,41 @@ func BenchmarkLoad(b *testing.B) {
 
 func BenchmarkFindIp(b *testing.B) {
 	s := new(QueryServer)
-	err := s.Load("./data/17monipdb.dat")
+	err := s.Load(DATA_FILE)
 	if nil != err {
 		b.Errorf("Load Error:%s", err.Error())
 	}
 
-	rndInit()
 	ipstr := getRandomIpStr()
 	for i := 0; i < b.N; i++ {
-		address, ok := s.FindIp(ipstr)
+		_, ok := s.FindIp(ipstr)
 		if !ok {
-			b.Errorf("FindIp Failed")
+			b.Errorf(DATA_FILE)
 		}
-		b.Logf("ipstr:%s,address:%s", ipstr, address)
 	}
 }
 
 func BenchmarkFindIpRandom(b *testing.B) {
 	s := new(QueryServer)
-	err := s.Load("./data/17monipdb.dat")
+	err := s.Load(DATA_FILE)
 	if nil != err {
 		b.Errorf("Load Error:%s", err.Error())
 	}
 
-	rndInit()
 	for i := 0; i < b.N; i++ {
 		ipstr := getRandomIpStr()
-		address, ok := s.FindIp(ipstr)
+		_, ok := s.FindIp(ipstr)
 		if !ok {
 			b.Errorf("FindIp Failed")
 		}
-		b.Logf("ipstr:%s,address:%s", ipstr, address)
 	}
 }
 
 func getRandomIpStr() string {
 	return fmt.Sprintf("%d.%d.%d.%d", rnd(0, 254), rnd(0, 254), rnd(0, 254), rnd(0, 254))
 }
-func rndInit() {
-	rand.Seed(time.Now().UnixNano())
-}
+
 func rnd(from, to int) int {
+	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(to+1-from) + from
 }

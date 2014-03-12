@@ -92,10 +92,37 @@ func (this *QueryServer) FindIp(ipstr string) (string, bool) {
 	iplong := ip2long(ip)
 
 	itemsCount := len(this.items)
-	for i := 0; i < itemsCount; i++ {
-		item := &this.items[i]
-		if iplong < item.Ip {
-			return item.Country, true
+
+	low := 0
+	high := itemsCount - 1
+
+	if iplong == this.items[low].Ip {
+		return this.items[low].Country, true
+	}
+
+	if iplong == this.items[high].Ip {
+		return this.items[high].Country, true
+	}
+
+	for low <= high {
+		mid := low + ((high - low) / 2)
+
+		//log.Printf("[FindIp2]low:%d,high:%d,mid:%d,midip:%d,findip:%d", low, high, mid, this.items[mid].Ip, iplong)
+
+		if this.items[mid].Ip >= iplong {
+			if mid >= 1 {
+				if this.items[mid-1].Ip <= iplong {
+					return this.items[mid].Country, true
+				}
+			} else {
+				return this.items[mid].Country, true
+			}
+		}
+
+		if this.items[mid].Ip > iplong {
+			high = mid - 1
+		} else {
+			low = mid + 1
 		}
 	}
 
