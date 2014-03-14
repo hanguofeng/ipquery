@@ -9,6 +9,7 @@ import (
 	//"log"
 	"net"
 	"os"
+	"strings"
 )
 
 type QueryServer struct {
@@ -19,9 +20,14 @@ type QueryServer struct {
 }
 
 type DataItem struct {
-	Ip       uint32
+	Ip      uint32
+	Address *Address
+}
+
+type Address struct {
 	Country  string
 	Province string
+	City     string
 }
 
 func (this *QueryServer) Load(dataFile string) error {
@@ -83,10 +89,10 @@ func (this *QueryServer) ParseData() error {
 
 }
 
-func (this *QueryServer) FindIp(ipstr string) (string, bool) {
+func (this *QueryServer) FindIp(ipstr string) (*Address, bool) {
 	ip := net.ParseIP(ipstr)
 	if nil == ip {
-		return "", false
+		return nil, false
 	}
 	ip = ip.To4()
 	iplong := ip2long(ip)
@@ -97,11 +103,11 @@ func (this *QueryServer) FindIp(ipstr string) (string, bool) {
 	high := itemsCount - 1
 
 	if iplong == this.items[low].Ip {
-		return this.items[low].Country, true
+		return this.items[low].Address, true
 	}
 
 	if iplong == this.items[high].Ip {
-		return this.items[high].Country, true
+		return this.items[high].Address, true
 	}
 
 	for low <= high {
@@ -112,10 +118,10 @@ func (this *QueryServer) FindIp(ipstr string) (string, bool) {
 		if this.items[mid].Ip >= iplong {
 			if mid >= 1 {
 				if this.items[mid-1].Ip <= iplong {
-					return this.items[mid].Country, true
+					return this.items[mid].Address, true
 				}
 			} else {
-				return this.items[mid].Country, true
+				return this.items[mid].Address, true
 			}
 		}
 
@@ -126,7 +132,7 @@ func (this *QueryServer) FindIp(ipstr string) (string, bool) {
 		}
 	}
 
-	return "", false
+	return nil, false
 }
 
 func (this *QueryServer) getLength() uint32 {
@@ -143,8 +149,29 @@ func (this *QueryServer) initItemData() {
 }
 
 func (this *QueryServer) addItemData(ip []byte, address string) {
-	item := DataItem{Ip: ip2long(ip), Country: address, Province: address}
+	address_struct := getAddressStructByAddressString(address)
+	item := DataItem{Ip: ip2long(ip), Address: address_struct}
 	this.items = append(this.items, item)
+}
+
+func getAddressStructByAddressString(address string) *Address {
+	address_arr := strings.Split(address, "\t")
+	country := ""
+	province := ""
+	city := ""
+
+	if len(address_arr) > 0 {
+		country = address_arr[0]
+	}
+	if len(address_arr) > 1 {
+		province = address_arr[1]
+	}
+	if len(address_arr) > 2 {
+		city = address_arr[2]
+	}
+
+	address_struct := &Address{Country: country, Province: province, City: city}
+	return address_struct
 }
 
 func ip2long(ip []byte) uint32 {

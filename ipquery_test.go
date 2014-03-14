@@ -34,7 +34,7 @@ func TestFindIp(t *testing.T) {
 	}
 
 	var ipstr string
-	var address string
+	var address *Address
 	var ok bool
 
 	ipstr = getRandomIpStr()
